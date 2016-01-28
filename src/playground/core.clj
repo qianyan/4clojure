@@ -196,11 +196,6 @@
              (fn [m1 [k v]]
                (merge m1 {[key k] v})) {} values)) m)))
 
-;;; Pascal's Trapezoid
-#_(defn pascal-trapezoid [coll]
-  )
-
-
 ;;; Simple closures
 (defn simple-closures [n]
   (fn [x]
