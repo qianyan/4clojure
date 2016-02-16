@@ -540,3 +540,94 @@
     (count (filter (fn [[x y]]
                      (= 1 (gcd x y))) (map (fn [n]
                                              [n num]) (range num))))))
+
+;;; Global take-while up to [n]th satisfies the predicate.
+(defn global-take-while [n pred coll]
+  (let [last-one (nth (filter pred coll) (dec n))]
+    (take-while #(not= last-one %) coll)))
+
+;;; Number Maze
+(defn number-maze [origin destination]
+  (letfn [(doubl-it [x] (* x 2))
+          (halve-it [x] (if (even? x)
+                          (/ x 2) nil))
+          (minus2-it [x] (- x 2))]
+    (loop [ds [destination] mem #{destination} path-count 0]
+      (if (some #(= % origin) ds)
+        (inc path-count)
+        (recur
+         (->> ds
+              (map (fn [x] (filter
+                           #(and (not (nil? %)) (not (mem %)))
+                           [(doubl-it x) (halve-it x) (minus2-it x)])))
+              (apply concat))
+         (clojure.set/union mem (into #{} ds))
+         (inc path-count))))))
+
+;;; sequs horribilis
+(defn sequs-horribilis [sum nested-coll]
+  (let [head (first nested-coll)
+        tail (rest nested-coll)]
+    (cond
+      (coll? head) (list (sequs-horribilis sum head))
+      (< (- sum head) 0) '()
+      (seq tail)
+      (cons head (sequs-horribilis (- sum head) tail))
+      :else (list head))))
+
+;;; intervals
+(defn intervals [coll]
+  (letfn [(increment-pattern [xs f]
+            (let [ls (last xs) l (last ls)]
+              (if (or (= (inc l) f) (= l f))
+                (conj (pop xs) (conj ls f))
+                (conj xs [f]))))]
+    (if (not (seq coll))
+      []
+      (let [c (sort coll)]
+        (map (fn [xs]
+               [(first xs) (last xs)])
+             (reduce #(increment-pattern % %2) [[(first c)]] (rest c)))))))
+
+
+;;; Balancing Brackets
+(defn balancing-brackets [str]
+  (let [brackets-map {"(" ")"
+                      "{" "}"
+                      "[" "]"}
+        brackets (re-seq #"\{|\}|\[|\]|\(|\)" str)]
+    (cond
+      (= 0 (count brackets)) true
+      (odd? (count brackets)) false
+      :else (empty? (reduce (fn [xs x]
+                              (if (= (get brackets-map (last xs)) x)
+                                (pop xs)
+                                (conj xs x))) [(first brackets)] (rest brackets))))))
+
+;;; reimplement trampoline
+(defn trampoline-1
+  ([f]
+   (let [ret (f)]
+     (if (fn? ret)
+       (recur ret)
+       ret)))
+  ([f & args]
+   (trampoline-1 #(apply f args))))
+
+;;; Recognize Playing Cards
+(defn recognize-playing-cards [s]
+  (let [suits {\S :spade \H :heart \D :diamond \C :club}
+        ranks {\2 0 \3 1 \4 2 \5 3 \6 4 \7 5 \8 6 \9 7 \T 8 \J 9 \Q 10 \K 11 \A 12}]
+    {:suit (get suits (first s)) :rank (get ranks (second s))}))
+
+;;; Pairwise Disjoint Sets
+(defn pairwise-disjoint-sets [sets]
+  (let [ret (apply concat sets) len (count ret)]
+    (= (count (into #{} ret)) len)))
+
+;;;write roman numberals
+
+
+;;; Equivalence Classes
+(defn equivalence-classes [f domain]
+  (into #{} (map #(into #{} %) (vals (group-by f domain)))))
