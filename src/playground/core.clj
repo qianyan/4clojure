@@ -671,3 +671,19 @@
 ;;; Equivalence Classes
 (defn equivalence-classes [f domain]
   (into #{} (map #(into #{} %) (vals (group-by f domain)))))
+
+;;; Insert between two items
+(defn insert-between-two-items [pred value coll]
+  (let [init (first coll) sec (second coll)]
+    (cond
+      (nil? init) '()
+      (nil? sec) coll
+      :else (cons init
+            (if (pred init sec)
+              (cons value
+                    (lazy-seq
+                     (when-let [s (seq coll)]
+                       (insert-between-two-items pred value (rest s)))))
+              (lazy-seq
+               (when-let [s (seq coll)]
+                 (insert-between-two-items pred value (rest s)))))))))
