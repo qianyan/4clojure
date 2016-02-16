@@ -626,6 +626,46 @@
     (= (count (into #{} ret)) len)))
 
 ;;;write roman numberals
+(defn read-roman-numberals [s]
+  (let [map-of-roman-numberals {:I 1 :V 5 :X 10 :L 50
+                                :C 100 :D 500 :M 1000}
+        numberals-seq (map #(map-of-roman-numberals (keyword (str %))) s)]
+    (second (reduce (fn [[pre result] x]
+               [x (+ result
+                     (if (< pre x)
+                       (- x (* 2 pre))
+                       x))])
+                    (repeat 2 (first numberals-seq)) (rest numberals-seq)))))
+
+(defn write-roman-numberals [num]
+  (letfn [(decompose [num]
+            (->> [1000 900 500 400 100 90 50 40 10 9 5 4 1]
+                 (reduce (fn [[ret tuple] x]
+                           [(mod ret x)
+                            (let [cnt (int (/ ret x))]
+                              (if (> cnt 0)
+                                (case x
+                                  900 (conj tuple [1 100] [1 1000])
+                                  400 (conj tuple [1 100] [1 500])
+                                  90 (conj tuple [1 10] [1 100])
+                                  40 (conj tuple [1 10] [1 50])
+                                  9 (conj tuple [1 1] [1 10])
+                                  4 (conj tuple [1 1] [1 5])
+                                  (conj tuple [cnt x]))
+                                tuple))]) [num []])
+                 second
+                 (map #(repeat (first %) (second %)))
+                 (apply concat)))]
+    
+    (let [roman-numberals {1 \I
+                           5 \V
+                           10 \X
+                           50 \L
+                           100 \C
+                           500 \D
+                           1000 \M}]
+
+      (apply str (map roman-numberals (decompose num))))))
 
 
 ;;; Equivalence Classes
