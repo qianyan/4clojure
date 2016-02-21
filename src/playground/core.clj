@@ -687,3 +687,31 @@
               (lazy-seq
                (when-let [s (seq coll)]
                  (insert-between-two-items pred value (rest s)))))))))
+
+;;; sequence of pronunciations
+(defn sequence-of-pronunciations [coll]
+  (letfn [(pronunciations [coll]
+            (flatten
+             (map (fn [c] [(count c) (first c)]) (partition-by identity coll))))]
+    (iterate
+     pronunciations
+     (pronunciations coll))))
+
+
+;;; Universal Computation Engine
+(defn universal-computation-engine [formula]
+  (fn [bindings]
+    (letfn [(calc [formula]
+              (cond 
+                (symbol? formula) (bindings formula)
+                (number? formula) formula
+                :else (let [op (first formula)
+                            exprs (rest formula)]
+                        (let [values (map calc exprs)]
+                          (case op
+                            + (apply + values)
+                            - (apply - values)
+                            * (apply * values)
+                            / (apply / values)
+                            :unsupported-operation)))))]
+      (calc formula))))
