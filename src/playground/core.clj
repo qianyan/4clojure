@@ -642,7 +642,7 @@
             (->> [1000 900 500 400 100 90 50 40 10 9 5 4 1]
                  (reduce (fn [[ret tuple] x]
                            [(mod ret x)
-                            (let [cnt (int (/ ret x))]
+                            (let [cnt (quot ret x)]
                               (if (> cnt 0)
                                 (case x
                                   900 (conj tuple [1 100] [1 1000])
