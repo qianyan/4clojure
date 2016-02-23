@@ -742,3 +742,45 @@
                               low (quot num (apply * (repeat digit 10N)))
                               up (apply * (repeat (count (.toString low)) 10N))]
                           (palindromic-in-i-digit low up)))))
+;;; Word Chains
+(defn word-chains [words]
+  (letfn [(delete [from to]
+            (cond (<= (count from) (count to)) false
+                  (some #(= % to) (map-indexed (fn [index x]
+                                                 (apply str (keep-indexed (fn [ind item] (when-not (= index ind) item)) from))) from))
+                  to
+                  :else false))
+          (change [from to]
+            (cond (not= (count from) (count to)) false
+              (= 1 (count (filter false?
+                            (map (fn [[k v]]
+                                   (= k v)) (zipmap from to))))) to
+              :else false))
+          (add [from to]
+            (cond (>= (count from) (count to)) false
+                  (delete to from) to
+                  :else false))
+          (edit-reach [word words]
+            (map (fn [w]
+                   (or (delete word w)
+                       (change word w)
+                       (add word w))) words))
+          (graph [words]
+            (apply merge
+             (map (fn [word]
+                    {word (edit-reach word words)}) words)))
+          (exist-chain? [init graph visited-set]
+            #_(prn init visited-set (graph init))
+            (if (= (set (keys graph)) visited-set)
+              true
+              (some #(when (and %
+                                (not (visited-set %)))
+                       (exist-chain? %
+                                     graph
+                                     (clojure.set/union #{%} visited-set)))
+                    (graph init))))]
+    
+    ;; (=  visited-set words)
+    (let [words-in-vec (into [] words)
+          graph (graph words-in-vec)]
+      (true? (some #(exist-chain? % graph #{%}) words-in-vec)))))
