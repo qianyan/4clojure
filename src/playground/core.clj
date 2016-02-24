@@ -784,3 +784,21 @@
     (let [words-in-vec (into [] words)
           graph (graph words-in-vec)]
       (true? (some #(exist-chain? % graph #{%}) words-in-vec)))))
+
+;;; Win at Tic-Tac-Toe
+(defn win-at-tic-tac-toe [piece board]
+  (letfn [(win? [who board]
+            (some true?
+                  (for [x (range 3)
+                        y (range 3)
+                        [dx dy] [[1 0] [0 1] [1 1] [1 -1]]]
+                    (every? true? (for [i (range 3)]
+                                    (= (get-in board [(+ (* dx i) x)
+                                                      (+ (* dy i) y)])
+                                       who))))))]
+
+    (let [places (for [x (range 3)
+                       y (range 3)
+                       :when (= :e (get-in board [x y]))]
+                  [x y])]
+      (set (filter #(win? piece (update-in board % (fn [_] piece))) places)))))
