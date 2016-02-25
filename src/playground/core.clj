@@ -802,3 +802,33 @@
                        :when (= :e (get-in board [x y]))]
                   [x y])]
       (set (filter #(win? piece (update-in board % (fn [_] piece))) places)))))
+
+;;; Triangle Minimal Path
+(defn triangle-minimal-path [tree]
+  (->> tree
+       rest
+       (reduce (fn [sums items]
+                 (map-indexed
+                  (fn [index item]
+                    (cond (zero? index) (+ (first sums) item) 
+                          (= (dec (count items)) index) (+ (last sums) item)
+                          :else (+ (Math/min (last sums) (last (butlast sums) )) item))) items))
+               (first tree))
+       (reduce #(Math/min % %2))))
+
+;;; Sum Some Set Subsets
+(defn sum-some-set-subsets [& sets]
+  (letfn [(power-set [s]
+            (let [first (first s) subset (rest s)]
+              (if (empty? s) #{#{}}
+                  (clojure.set/union
+                   (into #{} (map #(clojure.set/union #{first} %) (power-set subset)))
+                   (power-set subset))) ))]
+    (->>
+     sets
+     (map (fn [s]
+            (set (map #(apply + %)
+                      (power-set s)))))
+     (reduce clojure.set/intersection)
+     empty?
+     not)))
