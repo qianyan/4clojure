@@ -832,3 +832,14 @@
      (reduce clojure.set/intersection)
      empty?
      not)))
+
+;;; The Big Divide
+(defn the-big-divide [n a b]
+  (letfn [(sum [n x]
+            (let [end (quot (dec n) x)]  ;less than n
+              (quot (*' (+ x (* x end)) end) 2)))]
+
+    (-
+     (+ (sum n a) (sum n b))
+     (sum n (* a b)))))
+ 
