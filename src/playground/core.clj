@@ -843,3 +843,28 @@
      (+ (sum n a) (sum n b))
      (sum n (* a b)))))
  
+
+;;; Graph Connectivity
+(defn graph-connectivity [sets]
+  (letfn [(adjoining-vector [k-node nodes sets]
+            (map (fn [node]
+                    (when (or
+                           (contains? sets [k-node node])
+                           (contains? sets [node k-node]))
+                      node)) nodes))
+          (graph [nodes sets]
+            (apply merge
+             (map (fn [node]
+                    {node (adjoining-vector node nodes sets)}) nodes)))
+          (exist-chain? [init graph visited-set]
+            (if (= (set (keys graph)) visited-set)
+              true
+              (some #(when (and %
+                                (not (visited-set %)))
+                       (exist-chain? %
+                                     graph
+                                     (clojure.set/union #{%} visited-set)))
+                    (graph init))))]
+    (let [nodes (set (apply concat sets))
+          graph (graph nodes sets)]
+      (true? (some #(exist-chain? % graph #{%}) nodes)))))
