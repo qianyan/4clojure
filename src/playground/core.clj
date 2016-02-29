@@ -868,3 +868,17 @@
     (let [nodes (set (apply concat sets))
           graph (graph nodes sets)]
       (true? (some #(exist-chain? % graph #{%}) nodes)))))
+
+;;; Transitive Closure
+(defn transitive-closure [s]
+  (reduce (fn [xs tuple]
+            (let [new-tuples (clojure.set/union xs s)
+                  xss (clojure.set/union xs #{tuple})
+                  xss (if-let [ts (seq (filter #(= (second %) (first tuple)) new-tuples))]
+                        (clojure.set/union xss (map (fn [t] [(first t) (second tuple)]) ts))
+                        xss)
+                  xss (if-let [ts (seq (filter #(= (first %) (second tuple)) new-tuples))]
+                        (clojure.set/union xss (map (fn [t] [(first tuple) (second t)]) ts))
+                        xss)]
+              
+               xss)) #{} s))
