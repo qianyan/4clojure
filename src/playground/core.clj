@@ -882,3 +882,9 @@
                         xss)]
               
                xss)) #{} s))
+
+;;; Tricky card games
+(defn tricky-card-games [trump]
+  (fn [suits]
+    (let [trump (if (contains? #{:bridge :spade :heart :club} trump) trump (:suit (first suits)))]
+      (last (sort-by :rank (filter #(= trump (:suit %)) suits))))))
