@@ -857,7 +857,7 @@
              (map (fn [node]
                     {node (adjoining-vector node nodes sets)}) nodes)))
           (exist-chain? [init graph visited-set]
-            (if (= (set (keys graph)) visited-set)
+              (if (= (set (keys graph)) visited-set)
               true
               (some #(when (and %
                                 (not (visited-set %)))
@@ -888,3 +888,41 @@
   (fn [suits]
     (let [trump (if (contains? #{:bridge :spade :heart :club} trump) trump (:suit (first suits)))]
       (last (sort-by :rank (filter #(= trump (:suit %)) suits))))))
+
+;;; Graph Tour
+(defn graph-tour [edges]
+  (letfn [(adjoining-vector [k-node nodes edges]
+            (map (fn [node]
+                   (if-let [same-edges (->> edges
+                                            (filter #(or (= % [k-node node])
+                                                         (= % [node k-node])))
+                                            seq)]
+                     (count same-edges)
+                     0)) nodes))
+          (graph [nodes edges]
+            (map (fn [node]
+                   (adjoining-vector node nodes edges)) nodes))
+          (exist-path [[v v2] graph]
+            (if (not (zero? (nth (graph v) v2)))
+              true
+              (some #(exist-path [% v2] graph)
+                    (filter identity (map-indexed
+                                      (fn [index item]
+                                        (when (and
+                                               (not= index v) ;; ignore itself, otherwise cause infinite call
+                                               (not (zero? item))) index))
+                                      (graph v))))))
+          
+          (connectivity [graph]
+            (every? #(exist-path % graph) (let [nodes-cnt (count graph)] ;whether any two nodes has a path or not?
+                                            (for [x (range nodes-cnt)
+                                                  y (range nodes-cnt)
+                                                  :when (> y x)] [x y]))))]
+
+    (let [nodes (set (apply concat edges))
+          graph (into [] (graph nodes edges))
+          odds (count (filter #(odd? (apply + %)) graph))]
+      (and
+       (connectivity graph)
+       (or (= 0 odds)
+           (= 2 odds))))))
