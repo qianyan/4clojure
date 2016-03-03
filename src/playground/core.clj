@@ -929,8 +929,7 @@
 
 ;;; Game of Life
 (defn game-of-life [board]
-  (->> [(+ dx x)
-        (+ dy y)]
+  (->> [(+ dx x) (+ dy y)]
        (get-in board)
        (for [x (range (count board))
              y (range (count (first board)))
