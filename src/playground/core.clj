@@ -926,3 +926,23 @@
        (connectivity graph)
        (or (= 0 odds)
            (= 2 odds))))))
+
+;;; Game of Life
+(defn game-of-life [board]
+  (->> [(+ dx x)
+        (+ dy y)]
+       (get-in board)
+       (for [x (range (count board))
+             y (range (count (first board)))
+             [dx dy] [[0 0] [1 0] [-1 0] [0 1] [0 -1] [1 1] [-1 -1] [1 -1] [-1 1]]])
+       (partition 9)
+       (map (fn [xs]
+              (if (= \space (first xs))  ;if original element is whitespace
+                (if (= 3 (count (filter #(= % \#) (rest xs))))
+                  \# \space)
+                (let [neighbours (count (filter #(= % \#) (rest xs)))]
+                  (cond (> 2 neighbours) \space
+                        (or (= 2 neighbours) (= 3 neighbours)) \#
+                        (< 3 neighbours) \space)))))
+       (partition (count (first board)))
+       (map #(apply str %))))
