@@ -963,3 +963,30 @@
                       (calculated-result [(dec x) (dec y)])
                       (if (= ((vec a) (dec x)) ((vec b) (dec y))) 0 1)))))))]
     ((reduce step {} (apply concat (map #(map (fn [i] [% i]) (range 0 (inc (count b)))) (range 0 (inc (count a)))))) [(count a) (count b)])))
+
+;;; Parentheses... Again
+(defn parens
+     "Adds a parenthesis pair to each string in the set found,
+  until n parenthesis pairs exist in each string"
+     ([n] (parens "" n 0 0))
+     ([s n open close]
+      (if (= n close)
+        #{s}
+        (clojure.set/union
+         (if (< open n)
+           (parens (str s "(") n (inc open) close)
+           #{})
+         (if (< close open)
+           (parens (str s ")") n open (inc close))
+           #{})
+         ))
+      ))
+
+(defn parens-1 [n]
+  (letfn [(extendMemory [memory n] ;memory is a map to store known anwsers
+           (assoc memory n ;update memory
+                  (reduce merge #{};prepare the resul
+                          (concat
+                           (for[i (range 1 n) prev (memory i) post (memory (- n i))] (str prev post));play with the combination through the memory
+                           (for[prev (memory (dec n))] (str \( prev \)))))))];another way to grow
+    ((reduce extendMemory {0 #{""}} (range 1 (inc n))) n)))
