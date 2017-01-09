@@ -1,5 +1,4 @@
-(ns playground.core
-  (require [clojure.set :refer :all]))
+(ns playground.core)
 
 (defn x [key map]
   (and (contains? map key ) (nil? (key map))))
@@ -990,3 +989,60 @@
                            (for[i (range 1 n) prev (memory i) post (memory (- n i))] (str prev post));play with the combination through the memory
                            (for[prev (memory (dec n))] (str \( prev \)))))))];another way to grow
     ((reduce extendMemory {0 #{""}} (range 1 (inc n))) n)))
+
+(defn- god [_]
+  (prn _) _ )
+;; for science!
+(defn cheese-search? [maze]
+  (letfn [(adjacent [m [x y]]
+            (for [[dx dy] [[0 1] [0 -1] [1 0] [-1 0]]
+                  :when (let [x1 (+ x dx)
+                              y1 (+ y dy)]
+                          (and (<= 0 x1)
+                               (< x1 (count m))
+                               (<= 0 y1)
+                               (< y1 (count (first m)))
+                               (zero? (get-in m [x1 y1]))))]
+              [(+ x dx) (+ y dy)]))
+
+          (index [m p]
+            (let [row-len (count (first m))
+                  s (apply str m)
+                  idx (.indexOf s p)]
+            [(quot idx row-len) (rem idx row-len)]))
+
+          (solve [m src dst]
+            (loop [stack [[src]] s []]
+              (if (seq stack)
+                (let [path (peek stack)]
+                  (if (= (last path) dst)
+                    (conj s path)
+                    (recur (vec (concat (pop stack)
+                                        (for [p (adjacent m (last path))
+                                              :when (not (contains? (set path) p))]
+                                          (conj path p))))
+                           s)))
+                s)))]
+
+    (let [maze<->01 (mapv (fn [row]
+                           (mapv (fn [b]
+                                  (case b
+                                    \# 1
+                                    \space 0
+                                     0)) row)) maze)]
+
+      ;maze<->01
+      (not (empty? (solve maze<->01 (index maze "C") (index maze "M")))))))
+
+(cheese-search? ["#######"
+                 "#     #"
+                 "#  #  #"
+                 "#M # C#"
+                 "#######"])
+
+(cheese-search? ["M     "
+                 "      "
+                 "      "
+                 "      "
+                 "    ##"
+                 "    #C"])
