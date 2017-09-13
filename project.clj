@@ -7,9 +7,7 @@
   :main playground.core
   :aot :all
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}
-             :dev {:plugins [[refactor-nrepl "2.0.0"]
-                             [cider/cider-nrepl "0.10.2"]]}})
+  :profiles {:uberjar {:aot :all}})
 
 
 

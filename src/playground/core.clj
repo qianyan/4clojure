@@ -1,26 +1,30 @@
 (ns playground.core)
 
-(defn x [key map]
-  (and (contains? map key ) (nil? (key map))))
-
-
-(defn m [x & xs]
-  (reduce #(if (> % %2) % %2) x xs))
-
+;;; longest increment subsequences
 (defn longest-inc-subseq [coll]
   (reduce #(let [len-xs (count %)
                  len-x (count %2)]
-             (if (and (< len-xs len-x) (< 1 len-x)) %2 %))
+             (if (and (< len-xs len-x)
+                      (< 1 len-x))
+               %2
+               %))
           []
           (reductions (fn [xs x]
-                        (if (> x (last xs)) (conj xs x) [x])) (cons [(first coll)] (rest coll)))))
-;; partition
+                        (if (> x (last xs))
+                          (conj xs x)
+                          [x]))
+                      (cons [(first coll)] (rest coll)))))
+;;; partition
 (defn part [n coll]
   (filter #(= n (count %))
           (reductions (fn [xs s]
-                        (if (= (count xs) n) [s] (conj xs s))) [(first coll)] (rest coll))))
+                        (if (= (count xs) n)
+                          [s]
+                          (conj xs s)))
+                      [(first coll)]
+                      (rest coll))))
 
-;;Count Occurrences
+;;; count occurrences
 (defn frequencies-1 [coll]
   (reduce (fn [map k]
             (if (not (contains? map k))
@@ -1046,3 +1050,86 @@
                  "      "
                  "    ##"
                  "    #C"])
+
+
+
+;; infinite matrix
+(defn infinite-matrix
+  ([f m n]
+   (letfn [(gen [f1 init]
+             (lazy-seq
+              (cons init (gen f1 (f1 init)))))]
+     (map (fn [[r c]] (map #(f r %) c))
+                  (map vector (gen inc m) (gen identity (gen inc n))))))
+  ([f]
+   (infinite-matrix f 0 0))
+  ([f m n s t]
+   (take s (map #(take t %) (infinite-matrix f m n)))
+   ))
+
+(take 5 (map #(take 6 %) (infinite-matrix str)))
+(take 6 (map #(take 5 %) (infinite-matrix str 3 2)))
+(infinite-matrix * 3 5 5 7)
+
+(infinite-matrix #(/ % (inc %2)) 1 0 6 4)
+(class (infinite-matrix (juxt bit-or bit-xor)))
+
+(= (let [m 377 n 610 w 987
+         check (fn [f s] (every? true? (map-indexed f s)))
+         row (take w (nth (infinite-matrix vector) m))
+         column (take w (map first (infinite-matrix vector m n)))
+         diagonal (map-indexed #(nth %2 %) (infinite-matrix vector m n w w))]
+     (and (check #(= %2 [m %]) row)
+          (check #(= %2 [(+ m %) n]) column)
+          (check #(= %2 [(+ m %) (+ n %)]) diagonal)))
+   true)
+
+(defn balance?
+  ([chars]
+   (-> (balance? (next chars) [(first chars)])
+       empty?))
+  ([parens stack]
+   (letfn [(match [from to]
+             (= to ({\[ \] \( \)} from)))]
+     (if parens
+       (if (match (peek stack) (first parens)) 
+         (recur (next parens) (pop stack))
+         (recur (next parens) (conj stack (first parens))))
+       stack))))
+
+(balance? "())(")
+(balance? "([)]")
+(balance? "([])")
+
+; Making Data Dance
+(defn making-data-dance [& coll]
+  (reify clojure.lang.Seqable
+    (toString [this] (clojure.string/join ", " (sort coll)))
+    (seq [this] (if (empty? coll) nil (distinct coll)))))
+
+; crossword puzzle
+(defn crossword-puzzle [word coll]
+  (letfn [(word->coordinates [word horizonal?]
+            (if horizonal?
+              (map vector (repeat (count word) 0) (range 0 (count word)))
+              (map vector (range 0 (count word)) (repeat (count word) 0))))]
+    
+    (let [graph (vec (map-indexed (fn [idx item]
+                                    (vec (map-indexed (fn [ind val]
+                                                        (cond ((set word) val)
+                                                              [[(- idx (.indexOf word (str val))) ind]
+                                                               [idx (- ind (.indexOf word (str val)))] val]
+                                                              (= val \#) \#
+                                                              :else \_))
+                                                      item))) coll))
+          coords (filter sequential? (apply concat graph))
+          oritentation (map (fn [[h v _]]
+             (map (fn [coord]
+                    [(+ (first coord) (first h))
+                     (+ (second coord) (second h))])
+                  (word->coordinates word false))) coords)
+          ]
+      
+      (every? #(or vector? (= \_ (get-in graph %))) (first oritentation))
+
+      )))
