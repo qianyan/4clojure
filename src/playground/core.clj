@@ -1084,6 +1084,7 @@
           (check #(= %2 [(+ m %) (+ n %)]) diagonal)))
    true)
 
+;; https://paste.ubuntu.com/p/T8cRfMt5nx/
 (defn balance?
   ([chars]
    (-> (balance? (next chars) [(first chars)])
